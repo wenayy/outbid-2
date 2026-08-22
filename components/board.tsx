@@ -95,7 +95,11 @@ export function Board() {
   }, []);
 
   useEffect(() => {
-    queueMicrotask(() => void fetchData());
+    queueMicrotask(() => {
+      void fetch("/api/view", { method: "POST" })
+        .catch((error) => console.error(error))
+        .finally(() => void fetchData());
+    });
     const iv = setInterval(() => void fetchData(), 8000);
     return () => clearInterval(iv);
   }, [fetchData]);

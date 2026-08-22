@@ -9,8 +9,8 @@ export async function GET() {
 
   const stats = await prisma.siteStats.upsert({
     where: { id: "global" },
-    update: { totalViews: { increment: 1 } },
-    create: { id: "global", totalViews: 1 },
+    update: {},
+    create: { id: "global", totalViews: 0 },
   });
 
   const totalStars = listings.reduce((sum, l) => sum + l.stars, 0);
