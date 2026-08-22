@@ -145,6 +145,21 @@ export default async function AboutPage() {
               GitHub work in front of more developers. Whether you have 10 stars or 100k, GitFlex gives the work a stage.
             </p>
           </section>
+
+          <section className="bg-gh-surface border border-gh-border rounded-lg p-5 sm:p-6">
+            <h2 className="text-lg font-semibold text-gh-text mb-3">Credits</h2>
+            <p>
+              GitFlex was inspired by{" "}
+              <a href="https://outbid.lol" target="_blank" rel="noopener noreferrer" className="text-gh-blue hover:underline">
+                Outbid
+              </a>
+              {" "}and built by{" "}
+              <a href="https://x.com/jsvinay1" target="_blank" rel="noopener noreferrer" className="text-gh-blue hover:underline">
+                @jsvinay1
+              </a>
+              .
+            </p>
+          </section>
         </div>
 
         <div className="mt-8 text-center">

@@ -24,12 +24,20 @@ export default function Home() {
 
         {/* Footer */}
         <div className="mt-16 pt-6 border-t border-gh-border text-center space-y-2">
-          <div className="flex items-center justify-center gap-4 text-xs text-gh-text-muted">
+          <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 text-xs text-gh-text-muted">
             <Link href="/about" className="hover:text-gh-text transition-colors duration-150">About</Link>
             <span>·</span>
             <Link href="/rules" className="hover:text-gh-text transition-colors duration-150">Rules</Link>
             <span>·</span>
-            <span>gitflex.dev</span>
+            <a href="https://outbid.lol" target="_blank" rel="noopener noreferrer" className="hover:text-gh-text transition-colors duration-150">
+              Inspired by Outbid
+            </a>
+            <span>·</span>
+            <a href="https://x.com/jsvinay1" target="_blank" rel="noopener noreferrer" className="hover:text-gh-text transition-colors duration-150">
+              Made by @jsvinay1
+            </a>
+            <span>·</span>
+            <span>gitflex.lol</span>
           </div>
           <p className="text-xs text-gh-text-muted max-w-lg mx-auto leading-relaxed">
             The developer leaderboard where your GitHub speaks for itself.
