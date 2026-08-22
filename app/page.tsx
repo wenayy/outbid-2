@@ -1,5 +1,4 @@
 import { Board } from "@/components/board";
-import { ThemeToggle } from "@/components/theme-toggle";
 import Link from "next/link";
 
 export default function Home() {
@@ -20,7 +19,6 @@ export default function Home() {
             <a href="#leaderboard" className="hover:text-gh-text transition-colors duration-150">Leaderboard</a>
             <Link href="/about" className="hover:text-gh-text transition-colors duration-150 hidden sm:block">About</Link>
             <Link href="/rules" className="hover:text-gh-text transition-colors duration-150 hidden sm:block">Rules</Link>
-            <ThemeToggle />
           </div>
         </div>
       </nav>

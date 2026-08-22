@@ -20,28 +20,8 @@
   --color-gh-purple: #a371f7;
 }
 
-/* Light theme overrides */
-html[data-theme="light"] {
-  --color-gh-canvas: #ffffff;
-  --color-gh-surface: #f6f8fa;
-  --color-gh-overlay: #eaeef2;
-  --color-gh-border: #d0d7de;
-  --color-gh-border-subtle: #e1e4e8;
-  --color-gh-text: #1f2328;
-  --color-gh-text-secondary: #59636e;
-  --color-gh-text-muted: #8b949e;
-  --color-gh-green: #1a7f37;
-  --color-gh-green-bright: #2da44e;
-  --color-gh-blue: #0969da;
-  --color-gh-yellow: #9a6700;
-  --color-gh-orange: #bc4c00;
-  --color-gh-red: #cf222e;
-  --color-gh-purple: #8250df;
-}
-
-html[data-theme="light"] body {
-  background: #ffffff;
-  color: #1f2328;
+html {
+  color-scheme: dark;
 }
 
 * {
@@ -49,31 +29,15 @@ html[data-theme="light"] body {
   scrollbar-color: #30363d transparent;
 }
 
-html[data-theme="light"] * {
-  scrollbar-color: #d0d7de transparent;
-}
-
 ::selection {
   background: #238636aa;
   color: #e6edf3;
-}
-
-html[data-theme="light"] ::selection {
-  background: #1a7f3766;
-  color: #1f2328;
 }
 
 body {
   background: #0d1117;
   color: #e6edf3;
 }
-
-/* Light theme contrib grid overrides */
-html[data-theme="light"] .contrib-0 { background: #ebedf0 !important; }
-html[data-theme="light"] .contrib-1 { background: #9be9a8 !important; }
-html[data-theme="light"] .contrib-2 { background: #40c463 !important; }
-html[data-theme="light"] .contrib-3 { background: #30a14e !important; }
-html[data-theme="light"] .contrib-4 { background: #216e39 !important; }
 
 /* Smooth fade-in for cards/rows */
 @keyframes fadeInUp {
@@ -139,10 +103,6 @@ html[data-theme="light"] .contrib-4 { background: #216e39 !important; }
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
 }
-html[data-theme="light"] .card-hover:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
-}
-
 /* Share tooltip */
 .tooltip-share {
   position: relative;
@@ -164,10 +124,6 @@ html[data-theme="light"] .card-hover:hover {
   pointer-events: none;
   transition: opacity 0.15s ease, transform 0.15s ease;
 }
-html[data-theme="light"] .tooltip-share::after {
-  background: #1f2328;
-  color: #ffffff;
-}
 .tooltip-share:hover::after {
   opacity: 1;
   transform: translateX(-50%) scale(1);
@@ -186,9 +142,4 @@ html[data-theme="light"] .tooltip-share::after {
 /* Smooth number counter feel */
 .tabular-nums {
   font-variant-numeric: tabular-nums;
-}
-
-/* Light theme: GitHub SVG icon fill */
-html[data-theme="light"] .fill-gh-text {
-  fill: #1f2328;
 }
