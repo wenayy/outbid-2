@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { ContribGrid } from "./contrib-grid";
+import { DEMO_LISTINGS } from "@/lib/demo-listings";
 
 type Listing = {
   id: string;
@@ -42,12 +43,12 @@ type GHData = {
   url: string;
 };
 
-function TierHeader({ label, count }: { label: string; count: number }) {
+function TierHeader({ label, count, demo }: { label: string; count: number; demo: boolean }) {
   return (
     <div className="flex items-center gap-3 px-4 py-2.5 bg-gh-overlay/60 border-b border-gh-border">
       <span className="text-xs font-bold text-gh-text tracking-wide uppercase">{label}</span>
       <span className="flex-1 h-px bg-gh-border" />
-      <span className="text-xs text-gh-text-secondary tabular-nums font-medium">{count} listed</span>
+      <span className="text-xs text-gh-text-secondary tabular-nums font-medium">{count} {demo ? "examples" : "listed"}</span>
     </div>
   );
 }
@@ -57,6 +58,8 @@ export function Board() {
   const [meta, setMeta] = useState<Meta>({ totalStars: 0, totalListings: 0, totalBoosted: 0, totalViews: 0 });
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(() => Date.now());
+  const [boardMode, setBoardMode] = useState<"live" | "demo">("demo");
+  const modeInitializedRef = useRef(false);
 
   const [heroInput, setHeroInput] = useState("");
   const [heroData, setHeroData] = useState<GHData | null>(null);
@@ -83,6 +86,10 @@ export function Board() {
       const data = await res.json();
       setListings(data.listings);
       setMeta(data.meta);
+      if (!modeInitializedRef.current) {
+        setBoardMode(data.listings.length > 0 ? "live" : "demo");
+        modeInitializedRef.current = true;
+      }
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   }, []);
@@ -107,7 +114,7 @@ export function Board() {
   };
 
   const topBid = listings.length > 0 ? listings[0].boost : 0;
-  const claimPrice = nextAvailablePrice(topBid + 100);
+  const claimPrice = listings.length > 0 ? nextAvailablePrice(topBid + 100) : 50;
   // Minimum new bid = next available above lowest, or $0.50 if empty
   const lowestBid = listings.length > 0 ? listings[listings.length - 1].boost : 0;
   const minNewBid = nextAvailablePrice(lowestBid > 0 ? lowestBid + 100 : 50);
@@ -240,11 +247,14 @@ export function Board() {
   const outbidRankColor = outbidPredictedRank === 1 ? "text-gh-yellow" : outbidPredictedRank <= 3 ? "text-gh-orange" : "text-gh-green-bright";
   const outbidSameBidCount = outbidCents > 0 ? listings.filter((l) => l.boost === outbidCents).length : 0;
 
+  const isDemo = boardMode === "demo";
+  const displayedListings = isDemo ? DEMO_LISTINGS : listings;
+
   // Tier slices for leaderboard sections (top 3 are featured cards)
-  const tier4to10 = listings.slice(3, 10);
-  const tier11to20 = listings.slice(10, 20);
-  const tier21to50 = listings.slice(20, 50);
-  const tierRest = listings.slice(50);
+  const tier4to10 = displayedListings.slice(3, 10);
+  const tier11to20 = displayedListings.slice(10, 20);
+  const tier21to50 = displayedListings.slice(20, 50);
+  const tierRest = displayedListings.slice(50);
   const ITEMS_PER_PAGE = 50;
   const totalPages = Math.ceil(tierRest.length / ITEMS_PER_PAGE);
   const pagedRest = tierRest.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
@@ -252,6 +262,28 @@ export function Board() {
   const trackClick = (id: string, url: string) => {
     fetch("/api/click", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
     window.open(url, "_blank", "noopener");
+  };
+
+  const openProfile = (listing: Listing) => {
+    if (isDemo) {
+      window.open(listing.url, "_blank", "noopener");
+      return;
+    }
+    trackClick(listing.id, listing.url);
+  };
+
+  const startRealListing = () => {
+    setBoardMode("live");
+    setPage(1);
+    requestAnimationFrame(() => {
+      heroInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+      heroInputRef.current?.focus({ preventScroll: true });
+    });
+  };
+
+  const changeBoardMode = (mode: "live" | "demo") => {
+    setBoardMode(mode);
+    setPage(1);
   };
 
   const ShareIcon = () => (
@@ -275,7 +307,7 @@ export function Board() {
         <h2 className="text-3xl md:text-5xl font-bold text-gh-text mb-2 tracking-tight">
           Claim #1 for{" "}
           <span className="text-gh-green-bright font-mono tabular-nums">
-            {listings.length > 0 ? fmtDollars(claimPrice) : "$1"}
+            {fmtDollars(claimPrice)}
           </span>
         </h2>
         <p className="text-gh-text-secondary text-sm max-w-md mx-auto">
@@ -445,10 +477,44 @@ export function Board() {
         </div>
       )}
 
+      {/* Live/demo board selector */}
+      {!loading && (
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 px-4 py-3 bg-gh-surface border border-gh-border rounded-md animate-fade-in-up delay-4">
+          <div>
+            <h3 className="text-sm font-semibold text-gh-text">{isDemo ? "Demo preview" : "Live leaderboard"}</h3>
+            <p className="text-xs text-gh-text-muted mt-0.5">
+              {isDemo
+                ? "Example profiles and bids only. Demo entries do not affect the live board."
+                : `${listings.length} real ${listings.length === 1 ? "listing" : "listings"}. New listings start at ${fmtDollars(minNewBid)}.`}
+            </p>
+          </div>
+          <div className="inline-flex self-start sm:self-auto p-0.5 bg-gh-canvas border border-gh-border rounded-md" role="tablist" aria-label="Leaderboard view">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={!isDemo}
+              onClick={() => changeBoardMode("live")}
+              className={`px-3 py-1.5 rounded text-xs font-semibold transition-colors ${!isDemo ? "bg-gh-overlay text-gh-text shadow-sm" : "text-gh-text-muted hover:text-gh-text"}`}
+            >
+              Live <span className="tabular-nums">{listings.length}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={isDemo}
+              onClick={() => changeBoardMode("demo")}
+              className={`px-3 py-1.5 rounded text-xs font-semibold transition-colors ${isDemo ? "bg-gh-overlay text-gh-text shadow-sm" : "text-gh-text-muted hover:text-gh-text"}`}
+            >
+              Demo
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Top 3 Featured Cards */}
-      {!loading && listings.length >= 3 && (
+      {!loading && displayedListings.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {listings.slice(0, 3).map((l, i) => {
+          {displayedListings.slice(0, 3).map((l, i) => {
             const rank = i + 1;
             const borderColor = rank === 1 ? "border-gh-yellow" : rank === 2 ? "border-gh-text-secondary" : "border-gh-orange";
             const cardRankColor = rank === 1 ? "text-gh-yellow" : rank === 2 ? "text-gh-text-secondary" : "text-gh-orange";
@@ -483,16 +549,16 @@ export function Board() {
                         )}
                       </span>
                     </div>
-                    <span className="text-[11px] text-gh-text-muted tabular-nums">{l.clicks} clicks</span>
+                    <span className="text-[11px] text-gh-text-muted tabular-nums">{isDemo ? "Example" : `${l.clicks} clicks`}</span>
                   </div>
 
                   {/* Avatar + name */}
                   <div className="flex items-center gap-3 mb-3">
-                    <button onClick={() => trackClick(l.id, l.url)} className="group/avatar relative shrink-0">
+                    <button onClick={() => openProfile(l)} className="group/avatar relative shrink-0">
                       <img src={l.avatar} alt="" className={`w-12 h-12 border-2 border-gh-border group-hover/avatar:border-gh-blue transition-all duration-200 group-hover/avatar:scale-105 ${l.type === "repo" ? "rounded-lg" : "rounded-full"}`} />
                     </button>
                     <div className="min-w-0 flex-1">
-                      <button onClick={() => trackClick(l.id, l.url)} className="text-sm font-bold text-gh-text hover:text-gh-blue truncate block transition-colors duration-150">{l.name}</button>
+                      <button onClick={() => openProfile(l)} className="text-sm font-bold text-gh-text hover:text-gh-blue truncate block transition-colors duration-150">{l.name}</button>
                       <p className="text-[11px] text-gh-text-muted truncate">{l.type === "repo" ? l.github : `@${l.github}`}</p>
                     </div>
                   </div>
@@ -562,17 +628,19 @@ export function Board() {
                       {fmtDollars(l.boost)}
                     </span>
                     <div className="flex items-center gap-2">
+                      {!isDemo && (
+                        <button
+                          onClick={() => window.open(`/share?id=${l.id}`, "_blank")}
+                          className="tooltip-share px-2 py-1.5 text-gh-text-muted hover:text-gh-blue border border-gh-border rounded-md transition-all duration-200 hover:border-gh-blue/40"
+                        >
+                          <ShareIcon />
+                        </button>
+                      )}
                       <button
-                        onClick={() => window.open(`/share?id=${l.id}`, "_blank")}
-                        className="tooltip-share px-2 py-1.5 text-gh-text-muted hover:text-gh-blue border border-gh-border rounded-md transition-all duration-200 hover:border-gh-blue/40"
-                      >
-                        <ShareIcon />
-                      </button>
-                      <button
-                        onClick={() => openOutbid(rank, l)}
+                        onClick={() => isDemo ? startRealListing() : openOutbid(rank, l)}
                         className="px-3 py-1.5 text-xs font-semibold rounded-md bg-gh-green/90 border border-gh-green-bright/30 text-white hover:bg-gh-green-bright transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] claim-pulse tabular-nums"
                       >
-                        Claim {fmtDollars(nextAvailablePrice(l.boost + 100))}
+                        {isDemo ? "List yours" : `Claim ${fmtDollars(nextAvailablePrice(l.boost + 100))}`}
                       </button>
                     </div>
                   </div>
@@ -586,7 +654,7 @@ export function Board() {
       {/* Leaderboard */}
       {(() => {
         const renderRow = (l: Listing, rank: number) => {
-          const claimAmount = fmtDollars(nextAvailablePrice(l.boost + 100));
+          const claimLabel = isDemo ? "List yours" : `Claim ${fmtDollars(nextAvailablePrice(l.boost + 100))}`;
           return (
             <div
               key={l.id}
@@ -599,7 +667,7 @@ export function Board() {
                 }`}>
                   #{rank}
                 </span>
-                <button onClick={() => trackClick(l.id, l.url)} className="flex items-center gap-3 min-w-0 shrink-0 w-44">
+                <button onClick={() => openProfile(l)} className="flex items-center gap-3 min-w-0 shrink-0 w-44">
                   <img src={l.avatar} alt="" className={`w-10 h-10 shrink-0 border-2 border-gh-border hover:border-gh-blue transition-all duration-200 hover:scale-105 ${l.type === "repo" ? "rounded-lg" : "rounded-full"}`} />
                   <div className="min-w-0">
                     <span className="font-bold text-gh-blue truncate block hover:underline text-sm transition-colors duration-150">{l.name}</span>
@@ -647,7 +715,7 @@ export function Board() {
                 </div>
                 <div className="shrink-0 ml-auto pl-2 relative">
                   <div className="flex items-center justify-end gap-3 md:group-hover:opacity-0 transition-opacity duration-200">
-                    <span className="text-[11px] text-gh-text-muted tabular-nums whitespace-nowrap">{l.clicks} clicks</span>
+                    <span className="text-[11px] text-gh-text-muted tabular-nums whitespace-nowrap">{isDemo ? "Example bid" : `${l.clicks} clicks`}</span>
                     <span className={`font-mono font-bold text-sm tabular-nums whitespace-nowrap text-right w-20 ${
                       rank <= 3 ? "text-gh-yellow" : "text-gh-green-bright"
                     }`}>
@@ -655,11 +723,13 @@ export function Board() {
                     </span>
                   </div>
                   <div className="hidden md:flex items-center gap-2 absolute inset-0 justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    <button onClick={() => window.open(`/share?id=${l.id}`, "_blank")} className="tooltip-share px-1.5 py-1 text-gh-text-muted hover:text-gh-blue transition-all duration-200">
-                      <ShareIcon />
-                    </button>
-                    <button onClick={() => openOutbid(rank, l)} className="px-3 py-1.5 text-xs font-semibold rounded-md border transition-all duration-200 bg-gh-green/90 border-gh-green-bright/30 text-white hover:bg-gh-green-bright hover:scale-[1.03] active:scale-[0.97] tabular-nums whitespace-nowrap">
-                      Claim {claimAmount}
+                    {!isDemo && (
+                      <button onClick={() => window.open(`/share?id=${l.id}`, "_blank")} className="tooltip-share px-1.5 py-1 text-gh-text-muted hover:text-gh-blue transition-all duration-200">
+                        <ShareIcon />
+                      </button>
+                    )}
+                    <button onClick={() => isDemo ? startRealListing() : openOutbid(rank, l)} className="px-3 py-1.5 text-xs font-semibold rounded-md border transition-all duration-200 bg-gh-green/90 border-gh-green-bright/30 text-white hover:bg-gh-green-bright hover:scale-[1.03] active:scale-[0.97] tabular-nums whitespace-nowrap">
+                      {claimLabel}
                     </button>
                   </div>
                 </div>
@@ -671,7 +741,7 @@ export function Board() {
                 }`}>
                   #{rank}
                 </span>
-                <button onClick={() => trackClick(l.id, l.url)} className="flex items-center gap-2.5 min-w-0 flex-1">
+                <button onClick={() => openProfile(l)} className="flex items-center gap-2.5 min-w-0 flex-1">
                   <img src={l.avatar} alt="" className={`w-9 h-9 shrink-0 border-2 border-gh-border ${l.type === "repo" ? "rounded-lg" : "rounded-full"}`} />
                   <div className="min-w-0">
                     <span className="font-bold text-gh-blue truncate block text-sm">{l.name}</span>
@@ -688,8 +758,8 @@ export function Board() {
                   }`}>
                     {fmtDollars(l.boost)}
                   </span>
-                  <button onClick={() => openOutbid(rank, l)} className="px-2.5 py-1.5 text-[11px] font-semibold rounded-md bg-gh-green/90 border border-gh-green-bright/30 text-white tabular-nums">
-                    Claim
+                  <button onClick={() => isDemo ? startRealListing() : openOutbid(rank, l)} className="px-2.5 py-1.5 text-[11px] font-semibold rounded-md bg-gh-green/90 border border-gh-green-bright/30 text-white tabular-nums">
+                    {isDemo ? "List" : "Claim"}
                   </button>
                 </div>
               </div>
@@ -700,8 +770,8 @@ export function Board() {
         return (
           <div id="leaderboard" className="bg-gh-surface border border-gh-border rounded-md overflow-hidden animate-fade-in-up delay-7">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gh-border bg-gh-overlay/50">
-              <h3 className="text-sm font-semibold text-gh-text">Live Leaderboard</h3>
-              <span className="text-xs text-gh-text-muted tabular-nums">{listings.length} listed</span>
+              <h3 className="text-sm font-semibold text-gh-text">{isDemo ? "Example rankings" : "Live rankings"}</h3>
+              <span className="text-xs text-gh-text-muted tabular-nums">{displayedListings.length} {isDemo ? "examples" : "listed"}</span>
             </div>
 
             {loading ? (
@@ -710,7 +780,7 @@ export function Board() {
                   <div key={i} className="h-14 bg-gh-overlay/30 animate-pulse border-b border-gh-border last:border-b-0" />
                 ))}
               </div>
-            ) : listings.length === 0 ? (
+            ) : displayedListings.length === 0 ? (
               <div className="text-center py-16">
                 <p className="text-gh-text-secondary text-sm">The board is empty. Be the first to list.</p>
                 <p className="text-gh-text-muted text-xs mt-1">Drop your GitHub username above — starts at $0.50</p>
@@ -720,7 +790,7 @@ export function Board() {
                 {/* Top 10: ranks 4-10 */}
                 {tier4to10.length > 0 && (
                   <>
-                    <TierHeader label="Top 10" count={tier4to10.length} />
+                    <TierHeader label="Top 10" count={tier4to10.length} demo={isDemo} />
                     {tier4to10.map((l, i) => renderRow(l, i + 4))}
                   </>
                 )}
@@ -728,7 +798,7 @@ export function Board() {
                 {/* Top 20: ranks 11-20 */}
                 {tier11to20.length > 0 && (
                   <>
-                    <TierHeader label="Top 20" count={tier11to20.length} />
+                    <TierHeader label="Top 20" count={tier11to20.length} demo={isDemo} />
                     {tier11to20.map((l, i) => renderRow(l, i + 11))}
                   </>
                 )}
@@ -736,7 +806,7 @@ export function Board() {
                 {/* Top 50: ranks 21-50 */}
                 {tier21to50.length > 0 && (
                   <>
-                    <TierHeader label="Top 50" count={tier21to50.length} />
+                    <TierHeader label="Top 50" count={tier21to50.length} demo={isDemo} />
                     {tier21to50.map((l, i) => renderRow(l, i + 21))}
                   </>
                 )}
@@ -744,7 +814,7 @@ export function Board() {
                 {/* 51+: paginated */}
                 {pagedRest.length > 0 && (
                   <>
-                    <TierHeader label={`#${51 + (page - 1) * ITEMS_PER_PAGE}+`} count={pagedRest.length} />
+                    <TierHeader label={`#${51 + (page - 1) * ITEMS_PER_PAGE}+`} count={pagedRest.length} demo={isDemo} />
                     {pagedRest.map((l, i) => renderRow(l, 51 + (page - 1) * ITEMS_PER_PAGE + i))}
                   </>
                 )}
