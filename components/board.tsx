@@ -483,33 +483,47 @@ export function Board() {
 
       {/* Live/demo board selector */}
       {!loading && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 px-4 py-3 bg-gh-surface border border-gh-border rounded-md animate-fade-in-up delay-4">
-          <div>
-            <h3 className="text-sm font-semibold text-gh-text">{isDemo ? "Demo preview" : "Live leaderboard"}</h3>
-            <p className="text-xs text-gh-text-muted mt-0.5">
+        <div className={`relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 px-4 py-3.5 bg-gh-surface border rounded-md animate-fade-in-up delay-4 transition-colors duration-300 ${isDemo ? "border-gh-blue/35" : "border-gh-green-bright/35"}`}>
+          <span className={`absolute inset-y-3 left-0 w-0.5 rounded-r transition-colors duration-300 ${isDemo ? "bg-gh-blue" : "bg-gh-green-bright"}`} />
+          <div className="min-w-0 pl-1">
+            <div className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full shrink-0 transition-colors duration-300 ${isDemo ? "bg-gh-blue" : "bg-gh-green-bright animate-pulse"}`} />
+              <h3 className="text-sm font-semibold text-gh-text">{isDemo ? "Demo preview" : "Live leaderboard"}</h3>
+              <span className={`hidden sm:inline-flex px-1.5 py-0.5 rounded border text-[10px] font-bold uppercase ${isDemo ? "text-gh-blue border-gh-blue/25 bg-gh-blue/10" : "text-gh-green-bright border-gh-green-bright/25 bg-gh-green/10"}`}>
+                {isDemo ? "Examples" : "Open"}
+              </span>
+            </div>
+            <p className="text-xs text-gh-text-muted mt-1 leading-relaxed">
               {isDemo
-                ? "Example profiles and bids only. Demo entries do not affect the live board."
-                : `${listings.length} real ${listings.length === 1 ? "listing" : "listings"}. New listings start at ${fmtDollars(minNewBid)}.`}
+                ? "Illustrative profiles and bids. Nothing here affects the live rankings."
+                : `${listings.length} real ${listings.length === 1 ? "listing" : "listings"}. The next available spot starts at ${fmtDollars(minNewBid)}.`}
             </p>
           </div>
-          <div className="inline-flex self-start sm:self-auto p-0.5 bg-gh-canvas border border-gh-border rounded-md" role="tablist" aria-label="Leaderboard view">
+          <div className="relative grid grid-cols-2 self-stretch sm:self-auto w-full sm:w-56 h-10 p-1 bg-gh-canvas border border-gh-border rounded-md shrink-0" role="tablist" aria-label="Leaderboard view">
+            <span
+              aria-hidden="true"
+              className={`absolute top-1 bottom-1 left-1 w-[calc(50%_-_4px)] rounded border shadow-sm transition-all duration-300 ease-out ${isDemo ? "translate-x-full bg-gh-blue/10 border-gh-blue/30" : "translate-x-0 bg-gh-green/10 border-gh-green-bright/30"}`}
+            />
             <button
               type="button"
               role="tab"
               aria-selected={!isDemo}
               onClick={() => changeBoardMode("live")}
-              className={`px-3 py-1.5 rounded text-xs font-semibold transition-colors ${!isDemo ? "bg-gh-overlay text-gh-text shadow-sm" : "text-gh-text-muted hover:text-gh-text"}`}
+              className={`relative z-10 flex items-center justify-center gap-1.5 rounded text-xs font-semibold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-green-bright/60 ${!isDemo ? "text-gh-green-bright" : "text-gh-text-muted hover:text-gh-text"}`}
             >
-              Live <span className="tabular-nums">{listings.length}</span>
+              <span className={`w-1.5 h-1.5 rounded-full ${!isDemo ? "bg-gh-green-bright animate-pulse" : "bg-gh-text-muted"}`} />
+              Live
+              <span className={`min-w-5 px-1 py-0.5 rounded text-[10px] tabular-nums ${!isDemo ? "bg-gh-green/15 text-gh-green-bright" : "bg-gh-overlay text-gh-text-muted"}`}>{listings.length}</span>
             </button>
             <button
               type="button"
               role="tab"
               aria-selected={isDemo}
               onClick={() => changeBoardMode("demo")}
-              className={`px-3 py-1.5 rounded text-xs font-semibold transition-colors ${isDemo ? "bg-gh-overlay text-gh-text shadow-sm" : "text-gh-text-muted hover:text-gh-text"}`}
+              className={`relative z-10 flex items-center justify-center gap-1.5 rounded text-xs font-semibold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-blue/60 ${isDemo ? "text-gh-blue" : "text-gh-text-muted hover:text-gh-text"}`}
             >
-              Demo
+              <span className={`w-1.5 h-1.5 rounded-full ring-2 ring-offset-1 ring-offset-gh-canvas ${isDemo ? "bg-gh-blue ring-gh-blue/35" : "bg-gh-text-muted ring-gh-text-muted/25"}`} />
+              Demo preview
             </button>
           </div>
         </div>
@@ -517,7 +531,7 @@ export function Board() {
 
       {/* Top 3 Featured Cards */}
       {!loading && displayedListings.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+        <div key={boardMode} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 animate-board-switch">
           {displayedListings.slice(0, 3).map((l, i) => {
             const rank = i + 1;
             const borderColor = rank === 1 ? "border-gh-yellow" : rank === 2 ? "border-gh-text-secondary" : "border-gh-orange";
@@ -772,7 +786,7 @@ export function Board() {
         };
 
         return (
-          <div id="leaderboard" className="bg-gh-surface border border-gh-border rounded-md overflow-hidden animate-fade-in-up delay-7">
+          <div key={boardMode} id="leaderboard" className="bg-gh-surface border border-gh-border rounded-md overflow-hidden animate-board-switch">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gh-border bg-gh-overlay/50">
               <h3 className="text-sm font-semibold text-gh-text">{isDemo ? "Example rankings" : "Live rankings"}</h3>
               <span className="text-xs text-gh-text-muted tabular-nums">{displayedListings.length} {isDemo ? "examples" : "listed"}</span>
