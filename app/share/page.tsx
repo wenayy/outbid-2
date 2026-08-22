@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
+import { connection } from "next/server";
 import { ShareCard } from "@/components/share-card";
 
 type Props = {
@@ -7,6 +8,7 @@ type Props = {
 };
 
 export async function generateMetadata({ searchParams }: Props) {
+  await connection();
   const { id } = await searchParams;
   if (!id) return { title: "GitFlex" };
 
@@ -44,6 +46,7 @@ export async function generateMetadata({ searchParams }: Props) {
 }
 
 export default async function SharePage({ searchParams }: Props) {
+  await connection();
   const { id } = await searchParams;
   if (!id) redirect("/");
 
