@@ -92,7 +92,9 @@ export async function POST(req: NextRequest) {
   if (polarToken) {
     try {
       const { createCheckout } = await import("@/lib/polar");
-      const appUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
+      const appUrl = process.env.NODE_ENV === "production"
+        ? req.nextUrl.origin
+        : process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
       const checkout = await createCheckout({
         amount: boost,
         listingId: listing.id,

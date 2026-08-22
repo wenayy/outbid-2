@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { activatePaidListing } from "@/lib/listings";
+import { recordSuccessfulPayment } from "@/lib/listings";
 
 const POLAR_API = process.env.POLAR_SERVER === "sandbox"
   ? "https://sandbox-api.polar.sh/v1"
@@ -42,9 +42,12 @@ export async function POST(req: NextRequest) {
             c.metadata?.listing_id === listingId && c.status === "succeeded"
         );
 
-        if (checkout) {
-          await activatePaidListing(listingId);
-          return NextResponse.json({ active: true });
+        if (checkout && typeof checkout.id === "string") {
+          const activated = await recordSuccessfulPayment({
+            listingId,
+            checkoutId: checkout.id,
+          });
+          return NextResponse.json({ active: Boolean(activated) });
         }
       }
     } catch (e) {

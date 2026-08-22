@@ -22,10 +22,20 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    // Handle Polar.sh checkout completed event
+    // Keep checkout.updated support for existing Polar endpoint configurations.
     if (event.type === "checkout.updated" && event.data?.status === "succeeded") {
       const listingId = event.data.metadata?.listing_id;
       const checkoutId = event.data.id;
+
+      if (typeof listingId === "string" && typeof checkoutId === "string") {
+        await recordSuccessfulPayment({ listingId, checkoutId });
+      }
+    }
+
+    // Polar guarantees that payment has been received when order.paid is sent.
+    if (event.type === "order.paid") {
+      const listingId = event.data?.metadata?.listing_id;
+      const checkoutId = event.data?.checkout_id;
 
       if (typeof listingId === "string" && typeof checkoutId === "string") {
         await recordSuccessfulPayment({ listingId, checkoutId });
