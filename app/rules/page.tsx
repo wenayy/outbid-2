@@ -31,7 +31,7 @@ export default function RulesPage() {
               Getting on the board
             </h2>
             <ul className="space-y-2 text-sm text-gh-text-secondary">
-              <li>The minimum bid to get listed is <strong className="text-gh-text">$0.50</strong>.</li>
+              <li>The minimum bid to get listed is <strong className="text-gh-text">$1</strong>.</li>
               <li>You can list a <strong className="text-gh-text">GitHub user profile</strong> or a <strong className="text-gh-text">GitHub repository</strong>.</li>
               <li>Your rank is determined by your bid amount — higher bid = higher rank.</li>
               <li>No signup or login required. Just paste your GitHub and pay.</li>

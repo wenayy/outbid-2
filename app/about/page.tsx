@@ -122,7 +122,7 @@ export default async function AboutPage() {
             <h2 className="text-lg font-semibold text-gh-text mb-3">How does it work?</h2>
             <ol className="list-decimal pl-5 space-y-2.5 marker:text-gh-green-bright marker:font-semibold">
               <li><strong className="text-gh-text">Paste your GitHub</strong> - Enter your GitHub username or repository URL.</li>
-              <li><strong className="text-gh-text">Set your bid</strong> - Start at $0.50 to get on the live board.</li>
+              <li><strong className="text-gh-text">Set your bid</strong> - Start at $1 to get on the live board.</li>
               <li><strong className="text-gh-text">Claim your rank</strong> - Your position is determined by your bid amount.</li>
               <li><strong className="text-gh-text">Get traffic</strong> - Your listing links to GitHub and tracks real clicks.</li>
             </ol>

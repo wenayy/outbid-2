@@ -67,7 +67,7 @@ export function Board() {
   const [heroLooking, setHeroLooking] = useState(false);
   const [heroError, setHeroError] = useState("");
   const [heroStep, setHeroStep] = useState<"input" | "preview">("input");
-  const [heroBid, setHeroBid] = useState("0.50");
+  const [heroBid, setHeroBid] = useState("1");
   const [heroSubmitting, setHeroSubmitting] = useState(false);
   const heroInputRef = useRef<HTMLInputElement>(null);
 
@@ -146,10 +146,10 @@ export function Board() {
   };
 
   const topBid = listings.length > 0 ? listings[0].boost : 0;
-  const claimPrice = listings.length > 0 ? nextAvailablePrice(topBid + 100) : 50;
-  // Minimum new bid = next available above lowest, or $0.50 if empty
+  const claimPrice = listings.length > 0 ? nextAvailablePrice(topBid + 100) : 100;
+  // Minimum new bid = next available above lowest, or $1 if empty
   const lowestBid = listings.length > 0 ? listings[listings.length - 1].boost : 0;
-  const minNewBid = nextAvailablePrice(lowestBid > 0 ? lowestBid + 100 : 50);
+  const minNewBid = nextAvailablePrice(lowestBid > 0 ? lowestBid + 100 : 100);
 
   const fmt = (n: number) => {
     if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
@@ -158,8 +158,7 @@ export function Board() {
   };
 
   const fmtDollars = (cents: number) => {
-    if (cents >= 100) return `$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
-    return `$${(cents / 100).toFixed(2)}`;
+    return `$${Math.round(cents / 100).toLocaleString("en-US")}`;
   };
 
   const timeAgo = (dateStr: string) => {
@@ -182,7 +181,7 @@ export function Board() {
       if (!res.ok) { setHeroError(data.error || "Not found on GitHub"); return; }
       setHeroData(data);
       setHeroStep("preview");
-      setHeroBid((minNewBid / 100).toFixed(2));
+      setHeroBid(String(Math.round(minNewBid / 100)));
     } catch { setHeroError("Could not find that profile."); }
     finally { setHeroLooking(false); }
   };
@@ -190,7 +189,7 @@ export function Board() {
   const heroSubmit = async () => {
     if (!heroData) return;
     const cents = Math.round(parseFloat(heroBid) * 100);
-    if (isNaN(cents) || cents < 50) { setHeroError("Minimum is $0.50"); return; }
+    if (isNaN(cents) || cents < 100) { setHeroError("Minimum is $1"); return; }
     if (listings.some((l) => l.boost === cents)) {
       setHeroError(`Someone already bid ${fmtDollars(cents)}. Try ${fmtDollars(cents + 100)} instead.`);
       return;
@@ -231,7 +230,7 @@ export function Board() {
   const outbidSubmit = async () => {
     if (!outbidData || !outbidTarget) return;
     const cents = Math.round(parseFloat(outbidBid) * 100);
-    if (isNaN(cents) || cents < 50) { setOutbidError("Minimum bid is $0.50"); return; }
+    if (isNaN(cents) || cents < 100) { setOutbidError("Minimum bid is $1"); return; }
     if (listings.some((l) => l.boost === cents)) {
       setOutbidError(`Someone already bid ${fmtDollars(cents)}. Try ${fmtDollars(cents + 100)} instead.`);
       return;
@@ -259,7 +258,7 @@ export function Board() {
     setOutbidInput("");
     setOutbidData(null);
     setOutbidStep("github");
-    setOutbidBid((minBid / 100).toFixed(2));
+    setOutbidBid(String(Math.round(minBid / 100)));
     setOutbidError("");
   };
 
@@ -418,10 +417,10 @@ export function Board() {
                 <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gh-text-muted text-sm font-mono">$</span>
                 <input
                   type="number"
-                  min="0.50"
-                  step="0.50"
+                  min="1"
+                  step="1"
                   value={heroBid}
-                  onChange={(e) => setHeroBid(e.target.value)}
+                  onChange={(e) => setHeroBid(e.target.value.replace(/\./g, ""))}
                   className="w-full pl-7 pr-3 py-2.5 bg-gh-canvas border border-gh-border rounded-md text-gh-text font-mono text-sm focus:outline-none focus:border-gh-blue focus:ring-1 focus:ring-gh-blue/30 transition-all duration-200"
                 />
               </div>
@@ -438,9 +437,9 @@ export function Board() {
             <div className="px-3 py-2 bg-gh-overlay rounded-md border border-gh-border">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-gh-text-secondary">
-                  {heroBidCents >= 50 ? "You'll land at" : "Enter a bid"}
+                  {heroBidCents >= 100 ? "You'll land at" : "Enter a bid"}
                 </span>
-                {heroBidCents >= 50 && (
+                {heroBidCents >= 100 && (
                   <span className={`font-mono font-bold text-sm tabular-nums ${heroRankColor}`}>
                     #{heroPredictedRank}
                     <span className="text-gh-text-muted font-normal text-xs ml-1">
@@ -449,7 +448,7 @@ export function Board() {
                   </span>
                 )}
               </div>
-              {heroSameBidCount > 0 && heroBidCents >= 50 && (
+              {heroSameBidCount > 0 && heroBidCents >= 100 && (
                 <p className="text-[11px] text-gh-yellow mt-1">
                   {fmtDollars(heroBidCents)} is taken — try <span className="text-gh-green-bright font-medium">{fmtDollars(heroBidCents + 100)}</span>
                 </p>
@@ -842,7 +841,7 @@ export function Board() {
                 <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-gh-green/10 border border-gh-green-bright/25 text-gh-green-bright font-mono font-bold text-sm mb-3">#1</div>
                 <p className="text-gh-text font-semibold text-sm">The live board is wide open.</p>
                 <p className="text-gh-text-secondary text-sm mt-1.5 max-w-sm mx-auto leading-relaxed">
-                  Think your profile or repo can beat the examples? Take the first real spot for <strong className="text-gh-text font-semibold">$0.50</strong>.
+                  Think your profile or repo can beat the examples? Take the first real spot for <strong className="text-gh-text font-semibold">$1</strong>.
                 </p>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2 mt-4 max-w-xs mx-auto">
                   <button
@@ -980,10 +979,10 @@ export function Board() {
                     <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gh-text-muted text-sm font-mono">$</span>
                     <input
                       type="number"
-                      min="0.50"
-                      step="0.50"
+                      min="1"
+                      step="1"
                       value={outbidBid}
-                      onChange={(e) => setOutbidBid(e.target.value)}
+                      onChange={(e) => setOutbidBid(e.target.value.replace(/\./g, ""))}
                       className="w-full pl-7 pr-3 py-2 bg-gh-canvas border border-gh-border rounded-md text-gh-text font-mono text-sm focus:outline-none focus:border-gh-blue focus:ring-1 focus:ring-gh-blue/30 transition-all duration-200"
                     />
                   </div>
@@ -993,9 +992,9 @@ export function Board() {
                 <div className="px-3 py-2 bg-gh-overlay rounded-md border border-gh-border">
                   <div className="flex items-center justify-between">
                     <span className="text-xs text-gh-text-secondary">
-                      {outbidCents >= 50 ? "You'll land at" : "Enter a bid"}
+                      {outbidCents >= 100 ? "You'll land at" : "Enter a bid"}
                     </span>
-                    {outbidCents >= 50 && (
+                    {outbidCents >= 100 && (
                       <span className={`font-mono font-bold text-sm tabular-nums ${outbidRankColor}`}>
                         #{outbidPredictedRank}
                         <span className="text-gh-text-muted font-normal text-xs ml-1">
@@ -1004,7 +1003,7 @@ export function Board() {
                       </span>
                     )}
                   </div>
-                  {outbidSameBidCount > 0 && outbidCents >= 50 && (
+                  {outbidSameBidCount > 0 && outbidCents >= 100 && (
                     <p className="text-[11px] text-gh-yellow mt-1">
                       {fmtDollars(outbidCents)} is taken — try <span className="text-gh-green-bright font-medium">{fmtDollars(outbidCents + 100)}</span>
                     </p>

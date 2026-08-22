@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import { fetchRepo, fetchUser, parseGitHubInput } from "@/lib/github";
 import { activatePaidListing } from "@/lib/listings";
 
-const MIN_BOOST_CENTS = 50;
+const MIN_BOOST_CENTS = 100;
 const MAX_BOOST_CENTS = 100_000_000;
 
 type ListingInput = {
@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
   const boost = body?.boost;
 
   if (!githubInput || !Number.isInteger(boost) || boost < MIN_BOOST_CENTS || boost > MAX_BOOST_CENTS) {
-    return NextResponse.json({ error: "Invalid data. Minimum bid is $0.50." }, { status: 400 });
+    return NextResponse.json({ error: "Invalid data. Minimum bid is $1." }, { status: 400 });
   }
 
   const polarToken = process.env.POLAR_ACCESS_TOKEN;
