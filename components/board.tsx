@@ -58,8 +58,7 @@ export function Board() {
   const [meta, setMeta] = useState<Meta>({ totalStars: 0, totalListings: 0, totalBoosted: 0, totalViews: 0 });
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(() => Date.now());
-  const [boardMode, setBoardMode] = useState<"live" | "demo">("demo");
-  const modeInitializedRef = useRef(false);
+  const [boardMode, setBoardMode] = useState<"live" | "demo">("live");
   const handledListingHashRef = useRef("");
   const linkedListingElementRef = useRef<HTMLElement | null>(null);
 
@@ -88,10 +87,6 @@ export function Board() {
       const data = await res.json();
       setListings(data.listings);
       setMeta(data.meta);
-      if (!modeInitializedRef.current) {
-        setBoardMode(data.listings.length > 0 ? "live" : "demo");
-        modeInitializedRef.current = true;
-      }
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   }, []);
@@ -530,7 +525,7 @@ export function Board() {
             </div>
             <p className="text-xs text-gh-text-secondary mt-1 leading-relaxed">
               {isDemo ? (
-                <>Think you have a better profile or repo? Use these examples as the benchmark and <strong className="text-gh-text font-semibold">outbid them live.</strong></>
+                <>Think you have a better profile or repo? Use these examples as the benchmark and <strong className="text-gh-text font-semibold">claim a live spot.</strong></>
               ) : (
                 <><strong className="text-gh-text font-semibold tabular-nums">{listings.length}</strong> real {listings.length === 1 ? "listing" : "listings"}. The next available spot starts at <strong className="text-gh-text font-semibold">{fmtDollars(minNewBid)}</strong>.</>
               )}
@@ -699,7 +694,7 @@ export function Board() {
                         onClick={() => isDemo ? startRealListing() : openOutbid(rank, l)}
                         className="px-3 py-1.5 text-xs font-semibold rounded-md bg-gh-green/90 border border-gh-green-bright/30 text-white hover:bg-gh-green-bright transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] claim-pulse tabular-nums"
                       >
-                        {isDemo ? "Outbid them" : `Claim ${fmtDollars(nextAvailablePrice(l.boost + 100))}`}
+                        {isDemo ? "Get listed" : `Claim ${fmtDollars(nextAvailablePrice(l.boost + 100))}`}
                       </button>
                     </div>
                   </div>
@@ -713,7 +708,7 @@ export function Board() {
       {/* Leaderboard */}
       {(() => {
         const renderRow = (l: Listing, rank: number) => {
-          const claimLabel = isDemo ? "Outbid them" : `Claim ${fmtDollars(nextAvailablePrice(l.boost + 100))}`;
+          const claimLabel = isDemo ? "Get listed" : `Claim ${fmtDollars(nextAvailablePrice(l.boost + 100))}`;
           return (
             <div
               key={l.id}
@@ -819,7 +814,7 @@ export function Board() {
                     {fmtDollars(l.boost)}
                   </span>
                   <button onClick={() => isDemo ? startRealListing() : openOutbid(rank, l)} className="px-2.5 py-1.5 text-[11px] font-semibold rounded-md bg-gh-green/90 border border-gh-green-bright/30 text-white tabular-nums">
-                    {isDemo ? "Outbid" : "Claim"}
+                    {isDemo ? "List" : "Claim"}
                   </button>
                 </div>
               </div>

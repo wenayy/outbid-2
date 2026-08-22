@@ -134,7 +134,7 @@ export default async function AboutPage() {
               <li><strong className="text-gh-text">Zero friction</strong> - No signup or login. Just paste and pay.</li>
               <li><strong className="text-gh-text">Real metrics</strong> - We pull stars, forks, followers, repositories, and contribution history directly from GitHub.</li>
               <li><strong className="text-gh-text">Shareable cards</strong> - Every live listing gets a branded card you can share.</li>
-              <li><strong className="text-gh-text">Competitive</strong> - Someone took your spot? Outbid them and climb the board.</li>
+              <li><strong className="text-gh-text">Competitive</strong> - Raise your bid to claim a higher position and climb the board.</li>
             </ul>
           </section>
 
