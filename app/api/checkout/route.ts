@@ -29,6 +29,14 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid data. Minimum bid is $0.50." }, { status: 400 });
   }
 
+  const polarToken = process.env.POLAR_ACCESS_TOKEN;
+  if (!polarToken && process.env.NODE_ENV === "production") {
+    return NextResponse.json(
+      { error: "Payment checkout is not configured." },
+      { status: 503 }
+    );
+  }
+
   let listingData: ListingInput;
   try {
     listingData = await getListingInput(githubInput);
@@ -94,8 +102,6 @@ export async function POST(req: NextRequest) {
   const { listing, isNew } = result;
 
   // Try Polar.sh checkout
-  const polarToken = process.env.POLAR_ACCESS_TOKEN;
-
   if (polarToken) {
     try {
       const { createCheckout } = await import("@/lib/polar");
@@ -114,10 +120,14 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ checkoutUrl: checkout.url, listingId: listing.id });
     } catch (e) {
       console.error("Polar checkout failed:", e);
+      return NextResponse.json(
+        { error: "Payment checkout is temporarily unavailable." },
+        { status: 502 }
+      );
     }
   }
 
-  // Dev mode: auto-activate if no Polar token
+  // Local development only: auto-activate if no Polar token.
   if (isNew || !listing.active) {
     await activatePaidListing(listing.id);
   }

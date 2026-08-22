@@ -1,11 +1,20 @@
+import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
-import { PrismaLibSql } from "@prisma/adapter-libsql";
-import path from "path";
-import { fileURLToPath } from "url";
+import { PrismaNeon } from "@prisma/adapter-neon";
+import { neonConfig } from "@neondatabase/serverless";
+import ws from "ws";
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const dbPath = path.resolve(__dirname, "../dev.db");
-const adapter = new PrismaLibSql({ url: `file:${dbPath}` });
+if (typeof globalThis.WebSocket === "undefined") {
+  neonConfig.webSocketConstructor = ws;
+}
+
+const connectionString = process.env.DATABASE_URL;
+
+if (!connectionString) {
+  throw new Error("DATABASE_URL is not configured.");
+}
+
+const adapter = new PrismaNeon({ connectionString });
 const prisma = new PrismaClient({ adapter });
 
 const demoListings = [
@@ -49,8 +58,12 @@ const demoListings = [
 ];
 
 async function seed() {
-  // Clear existing
-  await prisma.listing.deleteMany();
+  const existingListings = await prisma.listing.count();
+
+  if (existingListings > 0) {
+    throw new Error("Refusing to seed a database that already has listings.");
+  }
+
   await prisma.siteStats.upsert({
     where: { id: "global" },
     update: { totalViews: 8432 },
@@ -65,5 +78,8 @@ async function seed() {
 }
 
 seed()
-  .catch(console.error)
-  .finally(() => process.exit());
+  .catch((error) => {
+    console.error(error);
+    process.exitCode = 1;
+  })
+  .finally(() => prisma.$disconnect());

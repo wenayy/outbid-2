@@ -1,6 +1,9 @@
+-- CreateSchema
+CREATE SCHEMA IF NOT EXISTS "public";
+
 -- CreateTable
 CREATE TABLE "Listing" (
-    "id" TEXT NOT NULL PRIMARY KEY,
+    "id" TEXT NOT NULL,
     "type" TEXT NOT NULL,
     "github" TEXT NOT NULL,
     "name" TEXT NOT NULL,
@@ -16,12 +19,16 @@ CREATE TABLE "Listing" (
     "clicks" INTEGER NOT NULL DEFAULT 0,
     "active" BOOLEAN NOT NULL DEFAULT false,
     "checkoutId" TEXT,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updatedAt" DATETIME NOT NULL
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "Listing_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "SiteStats" (
-    "id" TEXT NOT NULL PRIMARY KEY DEFAULT 'global',
-    "totalViews" INTEGER NOT NULL DEFAULT 0
+    "id" TEXT NOT NULL DEFAULT 'global',
+    "totalViews" INTEGER NOT NULL DEFAULT 0,
+
+    CONSTRAINT "SiteStats_pkey" PRIMARY KEY ("id")
 );

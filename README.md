@@ -1,36 +1,30 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Outbid
 
-## Getting Started
+A paid GitHub leaderboard built with Next.js, Prisma, Neon Postgres, and Polar.
 
-First, run the development server:
+## Local development
+
+Create `.env` from `.env.example`, then install dependencies and apply the database migration:
 
 ```bash
+npm install
+npx prisma migrate deploy
+npx prisma db seed # only for a new, empty database
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000) in your browser.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Vercel environment
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Set these variables for Production and Preview, then redeploy:
 
-## Learn More
+- `DATABASE_URL`: Neon pooled connection string
+- `DIRECT_URL`: Neon direct connection string, used by Prisma migrations
+- `GITHUB_TOKEN`: optional GitHub API token
+- `POLAR_ACCESS_TOKEN`: Polar organization access token
+- `POLAR_WEBHOOK_SECRET`: secret for the Polar webhook endpoint at `/api/webhook`
+- `POLAR_SERVER`: `production` or `sandbox`
+- `NEXT_PUBLIC_APP_URL`: deployed site origin, such as `https://example.com`
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Run `npx prisma migrate deploy` once against the production database before serving traffic. Production deliberately rejects listing checkout when Polar is not configured.

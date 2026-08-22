@@ -98,11 +98,19 @@ export function Board() {
     return () => clearInterval(iv);
   }, []);
 
+  // Find the next price that isn't already taken
+  const takenPrices = new Set(listings.map((l) => l.boost));
+  const nextAvailablePrice = (startCents: number) => {
+    let price = startCents;
+    while (takenPrices.has(price)) price += 100;
+    return price;
+  };
+
   const topBid = listings.length > 0 ? listings[0].boost : 0;
-  const claimPrice = topBid + 100;
-  // Minimum new bid = lowest existing bid + $1, or $0.50 if empty
+  const claimPrice = nextAvailablePrice(topBid + 100);
+  // Minimum new bid = next available above lowest, or $0.50 if empty
   const lowestBid = listings.length > 0 ? listings[listings.length - 1].boost : 0;
-  const minNewBid = lowestBid > 0 ? lowestBid + 100 : 50; // cents
+  const minNewBid = nextAvailablePrice(lowestBid > 0 ? lowestBid + 100 : 50);
 
   const fmt = (n: number) => {
     if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
@@ -207,7 +215,7 @@ export function Board() {
   };
 
   const openOutbid = (rank: number, listing: Listing) => {
-    const minBid = listing.boost + 100;
+    const minBid = nextAvailablePrice(listing.boost + 100);
     setOutbidTarget({ rank, listing });
     setOutbidInput("");
     setOutbidData(null);
@@ -564,7 +572,7 @@ export function Board() {
                         onClick={() => openOutbid(rank, l)}
                         className="px-3 py-1.5 text-xs font-semibold rounded-md bg-gh-green/90 border border-gh-green-bright/30 text-white hover:bg-gh-green-bright transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] claim-pulse tabular-nums"
                       >
-                        Claim {fmtDollars(l.boost + 100)}
+                        Claim {fmtDollars(nextAvailablePrice(l.boost + 100))}
                       </button>
                     </div>
                   </div>
@@ -578,7 +586,7 @@ export function Board() {
       {/* Leaderboard */}
       {(() => {
         const renderRow = (l: Listing, rank: number) => {
-          const claimAmount = fmtDollars(l.boost + 100);
+          const claimAmount = fmtDollars(nextAvailablePrice(l.boost + 100));
           return (
             <div
               key={l.id}
@@ -783,7 +791,7 @@ export function Board() {
               <strong className="text-gh-text">{outbidTarget.listing.name}</strong> is here at <strong className="text-gh-text">{fmtDollars(outbidTarget.listing.boost)}</strong>
             </p>
             <p className="text-xs text-gh-green-bright font-medium mb-4">
-              Pay <strong>{fmtDollars(outbidTarget.listing.boost + 100)}</strong> to take this spot, or bid less to land lower
+              Pay <strong>{fmtDollars(nextAvailablePrice(outbidTarget.listing.boost + 100))}</strong> to take this spot, or bid less to land lower
             </p>
 
             {outbidStep === "github" ? (
