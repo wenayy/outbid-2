@@ -60,6 +60,8 @@ export function Board() {
   const [now, setNow] = useState(() => Date.now());
   const [boardMode, setBoardMode] = useState<"live" | "demo">("demo");
   const modeInitializedRef = useRef(false);
+  const handledListingHashRef = useRef("");
+  const linkedListingElementRef = useRef<HTMLElement | null>(null);
 
   const [heroInput, setHeroInput] = useState("");
   const [heroData, setHeroData] = useState<GHData | null>(null);
@@ -108,6 +110,37 @@ export function Board() {
     const iv = setInterval(() => setNow(Date.now()), 60000);
     return () => clearInterval(iv);
   }, []);
+
+  useEffect(() => {
+    if (loading || typeof window === "undefined") return;
+
+    const hash = window.location.hash;
+    if (!hash.startsWith("#listing-") || handledListingHashRef.current === hash) return;
+
+    const listingId = hash.slice("#listing-".length);
+    if (!listings.some((listing) => listing.id === listingId)) return;
+
+    handledListingHashRef.current = hash;
+    let frame = 0;
+    const timeout = window.setTimeout(() => {
+      setBoardMode("live");
+      frame = window.requestAnimationFrame(() => {
+        const target = document.getElementById(`listing-${listingId}`);
+        linkedListingElementRef.current?.classList.remove("listing-linked");
+        target?.classList.add("listing-linked");
+        linkedListingElementRef.current = target;
+        target?.scrollIntoView({
+          behavior: "smooth",
+          block: "center",
+        });
+      });
+    }, 0);
+
+    return () => {
+      window.clearTimeout(timeout);
+      window.cancelAnimationFrame(frame);
+    };
+  }, [loading, listings]);
 
   // Find the next price that isn't already taken
   const takenPrices = new Set(listings.map((l) => l.boost));
@@ -540,7 +573,11 @@ export function Board() {
             const cardRankColor = rank === 1 ? "text-gh-yellow" : rank === 2 ? "text-gh-text-secondary" : "text-gh-orange";
             const badgeBg = rank === 1 ? "bg-[#e3b34118]" : rank === 2 ? "bg-[#8b949e18]" : "bg-[#d2992218]";
             return (
-              <div key={l.id} className={`relative bg-gh-surface border-2 ${borderColor} rounded-lg overflow-hidden card-hover`}>
+              <div
+                key={l.id}
+                id={!isDemo ? `listing-${l.id}` : undefined}
+                className={`listing-target scroll-mt-20 relative bg-gh-surface border-2 ${borderColor} rounded-lg overflow-hidden card-hover`}
+              >
                 {rank === 1 && (
                   <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gh-yellow to-transparent" />
                 )}
@@ -678,7 +715,8 @@ export function Board() {
           return (
             <div
               key={l.id}
-              className="group border-b border-gh-border transition-all duration-200 hover:bg-gh-overlay/40"
+              id={!isDemo ? `listing-${l.id}` : undefined}
+              className="listing-target scroll-mt-20 group border-b border-gh-border transition-all duration-200 hover:bg-gh-overlay/40"
             >
               {/* Desktop row */}
               <div className="hidden sm:flex items-center gap-4 px-4 py-3">

@@ -67,31 +67,18 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Also check for inactive listings for the same github (pending checkout)
-    const pending = await tx.listing.findFirst({
-      where: { github: listingData.github, active: false },
-    });
-
     const data = {
       ...listingData,
       boost,
       active: false,
     };
 
-    if (pending) {
-      // Update the pending listing instead of creating a duplicate
-      const updated = await tx.listing.update({
-        where: { id: pending.id },
-        data,
-      });
-      return { listing: updated, isNew: false };
-    }
-
-    // Create new listing
+    // Keep each checkout attached to its own listing so a later attempt cannot
+    // overwrite the amount associated with an earlier successful payment.
     const created = await tx.listing.create({
       data,
     });
-    return { listing: created, isNew: true };
+    return { listing: created };
   });
 
   // Transaction returned an error
@@ -99,7 +86,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: result.error }, { status: 400 });
   }
 
-  const { listing, isNew } = result;
+  const { listing } = result;
 
   // Try Polar.sh checkout
   if (polarToken) {
@@ -128,9 +115,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Local development only: auto-activate if no Polar token.
-  if (isNew || !listing.active) {
-    await activatePaidListing(listing.id);
-  }
+  await activatePaidListing(listing.id);
 
   return NextResponse.json({
     checkoutUrl: null,

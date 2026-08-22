@@ -21,7 +21,13 @@ function getPrismaClient() {
   }
 
   const adapter = new PrismaNeon({ connectionString });
-  const client = new PrismaClient({ adapter });
+  const client = new PrismaClient({
+    adapter,
+    transactionOptions: {
+      maxWait: 15_000,
+      timeout: 15_000,
+    },
+  });
 
   if (process.env.NODE_ENV !== "production") {
     globalForPrisma.prisma = client;
