@@ -1,7 +1,5 @@
-import { ImageResponse } from "@vercel/og";
+import { ImageResponse } from "next/og";
 import { NextRequest } from "next/server";
-
-export const runtime = "edge";
 
 export async function GET(req: NextRequest) {
   const { searchParams } = req.nextUrl;
@@ -138,5 +136,5 @@ export async function GET(req: NextRequest) {
       width: 1200,
       height: 630,
     }
-  ) as unknown as Response;
+  );
 }
