@@ -495,7 +495,7 @@ export function Board() {
             </div>
             <p className="text-xs text-gh-text-muted mt-1 leading-relaxed">
               {isDemo
-                ? "Illustrative profiles and bids. Nothing here affects the live rankings."
+                ? "Think you have a better profile or repo? Use these examples as the benchmark and outbid them live."
                 : `${listings.length} real ${listings.length === 1 ? "listing" : "listings"}. The next available spot starts at ${fmtDollars(minNewBid)}.`}
             </p>
           </div>
@@ -531,14 +531,14 @@ export function Board() {
 
       {/* Top 3 Featured Cards */}
       {!loading && displayedListings.length > 0 && (
-        <div key={boardMode} className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 animate-board-switch">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           {displayedListings.slice(0, 3).map((l, i) => {
             const rank = i + 1;
             const borderColor = rank === 1 ? "border-gh-yellow" : rank === 2 ? "border-gh-text-secondary" : "border-gh-orange";
             const cardRankColor = rank === 1 ? "text-gh-yellow" : rank === 2 ? "text-gh-text-secondary" : "text-gh-orange";
             const badgeBg = rank === 1 ? "bg-[#e3b34118]" : rank === 2 ? "bg-[#8b949e18]" : "bg-[#d2992218]";
             return (
-              <div key={l.id} className={`relative bg-gh-surface border-2 ${borderColor} rounded-lg overflow-hidden card-hover animate-fade-in-up delay-${rank + 3}`}>
+              <div key={l.id} className={`relative bg-gh-surface border-2 ${borderColor} rounded-lg overflow-hidden card-hover`}>
                 {rank === 1 && (
                   <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-gh-yellow to-transparent" />
                 )}
@@ -658,7 +658,7 @@ export function Board() {
                         onClick={() => isDemo ? startRealListing() : openOutbid(rank, l)}
                         className="px-3 py-1.5 text-xs font-semibold rounded-md bg-gh-green/90 border border-gh-green-bright/30 text-white hover:bg-gh-green-bright transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] claim-pulse tabular-nums"
                       >
-                        {isDemo ? "List yours" : `Claim ${fmtDollars(nextAvailablePrice(l.boost + 100))}`}
+                        {isDemo ? "Outbid them" : `Claim ${fmtDollars(nextAvailablePrice(l.boost + 100))}`}
                       </button>
                     </div>
                   </div>
@@ -672,7 +672,7 @@ export function Board() {
       {/* Leaderboard */}
       {(() => {
         const renderRow = (l: Listing, rank: number) => {
-          const claimLabel = isDemo ? "List yours" : `Claim ${fmtDollars(nextAvailablePrice(l.boost + 100))}`;
+          const claimLabel = isDemo ? "Outbid them" : `Claim ${fmtDollars(nextAvailablePrice(l.boost + 100))}`;
           return (
             <div
               key={l.id}
@@ -777,7 +777,7 @@ export function Board() {
                     {fmtDollars(l.boost)}
                   </span>
                   <button onClick={() => isDemo ? startRealListing() : openOutbid(rank, l)} className="px-2.5 py-1.5 text-[11px] font-semibold rounded-md bg-gh-green/90 border border-gh-green-bright/30 text-white tabular-nums">
-                    {isDemo ? "List" : "Claim"}
+                    {isDemo ? "Outbid" : "Claim"}
                   </button>
                 </div>
               </div>
@@ -786,7 +786,7 @@ export function Board() {
         };
 
         return (
-          <div key={boardMode} id="leaderboard" className="bg-gh-surface border border-gh-border rounded-md overflow-hidden animate-board-switch">
+          <div id="leaderboard" className="bg-gh-surface border border-gh-border rounded-md overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gh-border bg-gh-overlay/50">
               <h3 className="text-sm font-semibold text-gh-text">{isDemo ? "Example rankings" : "Live rankings"}</h3>
               <span className="text-xs text-gh-text-muted tabular-nums">{displayedListings.length} {isDemo ? "examples" : "listed"}</span>
@@ -799,9 +799,19 @@ export function Board() {
                 ))}
               </div>
             ) : displayedListings.length === 0 ? (
-              <div className="text-center py-16">
-                <p className="text-gh-text-secondary text-sm">The board is empty. Be the first to list.</p>
-                <p className="text-gh-text-muted text-xs mt-1">Drop your GitHub username above — starts at $0.50</p>
+              <div className="text-center py-12 px-4">
+                <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-gh-green/10 border border-gh-green-bright/25 text-gh-green-bright font-mono font-bold text-sm mb-3">#1</div>
+                <p className="text-gh-text font-semibold text-sm">The live board is wide open.</p>
+                <p className="text-gh-text-muted text-xs mt-1.5 max-w-sm mx-auto leading-relaxed">
+                  Think your profile or repo can beat the demo examples? Claim the first real spot for $0.50.
+                </p>
+                <button
+                  type="button"
+                  onClick={startRealListing}
+                  className="mt-4 px-4 py-2 rounded-md bg-gh-green text-white text-xs font-semibold border border-gh-green-bright/25 hover:bg-gh-green-bright transition-colors"
+                >
+                  Claim live #1
+                </button>
               </div>
             ) : (
               <div>

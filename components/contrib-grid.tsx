@@ -3,22 +3,29 @@
 import { useEffect, useState } from "react";
 
 type DayData = { date: string; count: number; level: number };
+type ContributionData = { weeks: DayData[][]; total: number; streak: number };
+
+const contributionCache = new Map<string, ContributionData>();
 
 export function ContribGrid({ username }: { username: string }) {
-  const [weeks, setWeeks] = useState<DayData[][]>([]);
-  const [total, setTotal] = useState(0);
-  const [streak, setStreak] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const cached = contributionCache.get(username);
+  const [weeks, setWeeks] = useState<DayData[][]>(() => cached?.weeks ?? []);
+  const [total, setTotal] = useState(() => cached?.total ?? 0);
+  const [streak, setStreak] = useState(() => cached?.streak ?? 0);
+  const [loading, setLoading] = useState(() => !cached);
 
   useEffect(() => {
     let cancelled = false;
 
     async function load() {
+      if (contributionCache.has(username)) return;
+
       try {
         const res = await fetch(`/api/contributions?username=${encodeURIComponent(username)}`);
         if (!res.ok) return;
         const data = await res.json();
         if (cancelled) return;
+        contributionCache.set(username, data);
         setWeeks(data.weeks);
         setTotal(data.total);
         setStreak(data.streak);
@@ -49,7 +56,7 @@ export function ContribGrid({ username }: { username: string }) {
   };
 
   return (
-    <div className="flex items-center gap-3 animate-fade-in-up">
+    <div className="flex items-center gap-3">
       <div className="flex gap-[3px]">
         {recentWeeks.map((week, wi) => (
           <div key={wi} className="flex flex-col gap-[3px]">
