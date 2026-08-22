@@ -27,6 +27,7 @@ export async function generateMetadata({ searchParams }: Props) {
   ogUrl.searchParams.set("language", listing.language || "");
   ogUrl.searchParams.set("followers", listing.followers.toString());
   ogUrl.searchParams.set("bid", listing.boost.toString());
+  ogUrl.searchParams.set("type", listing.type);
 
   return {
     title: `${listing.name} is #${rank} on GitFlex`,

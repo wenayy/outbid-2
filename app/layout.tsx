@@ -14,8 +14,27 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://gitflex.lol"),
   title: "GitFlex — Flex Your GitHub",
   description: "The live leaderboard where developers flex their GitHub stats. Boost your rank. Get clicks. Show off your stars.",
+  openGraph: {
+    title: "GitFlex — Can Your Repo Beat the Board?",
+    description: "The live leaderboard where developers flex their GitHub stats. Compete, climb, and get ranked.",
+    images: [
+      {
+        url: "/gitflex-launch-card.png",
+        width: 1672,
+        height: 941,
+        alt: "GitFlex live GitHub repository leaderboard",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "GitFlex — Can Your Repo Beat the Board?",
+    description: "The live leaderboard where developers flex their GitHub stats. Compete, climb, and get ranked.",
+    images: ["/gitflex-launch-card.png"],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
