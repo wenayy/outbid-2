@@ -493,10 +493,12 @@ export function Board() {
                 {isDemo ? "Examples" : "Open"}
               </span>
             </div>
-            <p className="text-xs text-gh-text-muted mt-1 leading-relaxed">
-              {isDemo
-                ? "Think you have a better profile or repo? Use these examples as the benchmark and outbid them live."
-                : `${listings.length} real ${listings.length === 1 ? "listing" : "listings"}. The next available spot starts at ${fmtDollars(minNewBid)}.`}
+            <p className="text-xs text-gh-text-secondary mt-1 leading-relaxed">
+              {isDemo ? (
+                <>Think you have a better profile or repo? Use these examples as the benchmark and <strong className="text-gh-text font-semibold">outbid them live.</strong></>
+              ) : (
+                <><strong className="text-gh-text font-semibold tabular-nums">{listings.length}</strong> real {listings.length === 1 ? "listing" : "listings"}. The next available spot starts at <strong className="text-gh-text font-semibold">{fmtDollars(minNewBid)}</strong>.</>
+              )}
             </p>
           </div>
           <div className="relative grid grid-cols-2 self-stretch sm:self-auto w-full sm:w-56 h-10 p-1 bg-gh-canvas border border-gh-border rounded-md shrink-0" role="tablist" aria-label="Leaderboard view">
@@ -509,18 +511,18 @@ export function Board() {
               role="tab"
               aria-selected={!isDemo}
               onClick={() => changeBoardMode("live")}
-              className={`relative z-10 flex items-center justify-center gap-1.5 rounded text-xs font-semibold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-green-bright/60 ${!isDemo ? "text-gh-green-bright" : "text-gh-text-muted hover:text-gh-text"}`}
+              className={`relative z-10 flex items-center justify-center gap-1.5 rounded text-xs font-semibold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-green-bright/60 ${!isDemo ? "text-gh-green-bright" : "text-gh-text-secondary hover:text-gh-text"}`}
             >
               <span className={`w-1.5 h-1.5 rounded-full ${!isDemo ? "bg-gh-green-bright animate-pulse" : "bg-gh-text-muted"}`} />
               Live
-              <span className={`min-w-5 px-1 py-0.5 rounded text-[10px] tabular-nums ${!isDemo ? "bg-gh-green/15 text-gh-green-bright" : "bg-gh-overlay text-gh-text-muted"}`}>{listings.length}</span>
+              <span className={`min-w-5 px-1 py-0.5 rounded text-[10px] tabular-nums ${!isDemo ? "bg-gh-green/15 text-gh-green-bright" : "bg-gh-overlay text-gh-text-secondary"}`}>{listings.length}</span>
             </button>
             <button
               type="button"
               role="tab"
               aria-selected={isDemo}
               onClick={() => changeBoardMode("demo")}
-              className={`relative z-10 flex items-center justify-center gap-1.5 rounded text-xs font-semibold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-blue/60 ${isDemo ? "text-gh-blue" : "text-gh-text-muted hover:text-gh-text"}`}
+              className={`relative z-10 flex items-center justify-center gap-1.5 rounded text-xs font-semibold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-blue/60 ${isDemo ? "text-gh-blue" : "text-gh-text-secondary hover:text-gh-text"}`}
             >
               <span className={`w-1.5 h-1.5 rounded-full ring-2 ring-offset-1 ring-offset-gh-canvas ${isDemo ? "bg-gh-blue ring-gh-blue/35" : "bg-gh-text-muted ring-gh-text-muted/25"}`} />
               Demo preview
@@ -789,7 +791,9 @@ export function Board() {
           <div id="leaderboard" className="bg-gh-surface border border-gh-border rounded-md overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gh-border bg-gh-overlay/50">
               <h3 className="text-sm font-semibold text-gh-text">{isDemo ? "Example rankings" : "Live rankings"}</h3>
-              <span className="text-xs text-gh-text-muted tabular-nums">{displayedListings.length} {isDemo ? "examples" : "listed"}</span>
+              <span className="text-xs text-gh-text-secondary tabular-nums">
+                {isDemo ? `${displayedListings.length} examples` : displayedListings.length === 0 ? "No listings yet" : `${displayedListings.length} listed`}
+              </span>
             </div>
 
             {loading ? (
@@ -802,16 +806,25 @@ export function Board() {
               <div className="text-center py-12 px-4">
                 <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-gh-green/10 border border-gh-green-bright/25 text-gh-green-bright font-mono font-bold text-sm mb-3">#1</div>
                 <p className="text-gh-text font-semibold text-sm">The live board is wide open.</p>
-                <p className="text-gh-text-muted text-xs mt-1.5 max-w-sm mx-auto leading-relaxed">
-                  Think your profile or repo can beat the demo examples? Claim the first real spot for $0.50.
+                <p className="text-gh-text-secondary text-sm mt-1.5 max-w-sm mx-auto leading-relaxed">
+                  Think your profile or repo can beat the examples? Take the first real spot for <strong className="text-gh-text font-semibold">$0.50</strong>.
                 </p>
-                <button
-                  type="button"
-                  onClick={startRealListing}
-                  className="mt-4 px-4 py-2 rounded-md bg-gh-green text-white text-xs font-semibold border border-gh-green-bright/25 hover:bg-gh-green-bright transition-colors"
-                >
-                  Claim live #1
-                </button>
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2 mt-4 max-w-xs mx-auto">
+                  <button
+                    type="button"
+                    onClick={startRealListing}
+                    className="px-4 py-2 rounded-md bg-gh-green text-white text-xs font-semibold border border-gh-green-bright/25 hover:bg-gh-green-bright transition-colors"
+                  >
+                    Claim live #1
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => changeBoardMode("demo")}
+                    className="px-4 py-2 rounded-md bg-gh-overlay text-gh-text-secondary text-xs font-semibold border border-gh-border hover:text-gh-text hover:border-gh-blue/40 transition-colors"
+                  >
+                    See demo rankings
+                  </button>
+                </div>
               </div>
             ) : (
               <div>
