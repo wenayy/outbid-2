@@ -1,26 +1,173 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
 @theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-gh-canvas: #0d1117;
+  --color-gh-surface: #161b22;
+  --color-gh-overlay: #1c2128;
+  --color-gh-border: #30363d;
+  --color-gh-border-subtle: #21262d;
+  --color-gh-text: #e6edf3;
+  --color-gh-text-secondary: #8b949e;
+  --color-gh-text-muted: #484f58;
+  --color-gh-green: #238636;
+  --color-gh-green-bright: #3fb950;
+  --color-gh-blue: #58a6ff;
+  --color-gh-yellow: #e3b341;
+  --color-gh-orange: #d29922;
+  --color-gh-red: #f85149;
+  --color-gh-purple: #a371f7;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Light theme overrides */
+html[data-theme="light"] {
+  --color-gh-canvas: #ffffff;
+  --color-gh-surface: #f6f8fa;
+  --color-gh-overlay: #eaeef2;
+  --color-gh-border: #d0d7de;
+  --color-gh-border-subtle: #e1e4e8;
+  --color-gh-text: #1f2328;
+  --color-gh-text-secondary: #59636e;
+  --color-gh-text-muted: #8b949e;
+  --color-gh-green: #1a7f37;
+  --color-gh-green-bright: #2da44e;
+  --color-gh-blue: #0969da;
+  --color-gh-yellow: #9a6700;
+  --color-gh-orange: #bc4c00;
+  --color-gh-red: #cf222e;
+  --color-gh-purple: #8250df;
+}
+
+html[data-theme="light"] body {
+  background: #ffffff;
+  color: #1f2328;
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #30363d transparent;
+}
+
+html[data-theme="light"] * {
+  scrollbar-color: #d0d7de transparent;
+}
+
+::selection {
+  background: #238636aa;
+  color: #e6edf3;
+}
+
+html[data-theme="light"] ::selection {
+  background: #1a7f3766;
+  color: #1f2328;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: #0d1117;
+  color: #e6edf3;
+}
+
+/* Light theme contrib grid overrides */
+html[data-theme="light"] .contrib-0 { background: #ebedf0 !important; }
+html[data-theme="light"] .contrib-1 { background: #9be9a8 !important; }
+html[data-theme="light"] .contrib-2 { background: #40c463 !important; }
+html[data-theme="light"] .contrib-3 { background: #30a14e !important; }
+html[data-theme="light"] .contrib-4 { background: #216e39 !important; }
+
+/* Smooth fade-in for cards/rows */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-up {
+  animation: fadeInUp 0.4s ease-out both;
+}
+
+/* Staggered delay utility */
+.delay-1 { animation-delay: 0.05s; }
+.delay-2 { animation-delay: 0.1s; }
+.delay-3 { animation-delay: 0.15s; }
+.delay-4 { animation-delay: 0.2s; }
+.delay-5 { animation-delay: 0.25s; }
+.delay-6 { animation-delay: 0.3s; }
+.delay-7 { animation-delay: 0.35s; }
+
+/* Streak fire glow */
+@keyframes fireGlow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+.animate-fire {
+  animation: fireGlow 1.5s ease-in-out infinite;
+}
+
+/* Smooth scale on card hover */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+html[data-theme="light"] .card-hover:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+/* Share tooltip */
+.tooltip-share {
+  position: relative;
+}
+.tooltip-share::after {
+  content: "Share card";
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%) scale(0.9);
+  padding: 3px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  white-space: nowrap;
+  background: #e6edf3;
+  color: #0d1117;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+html[data-theme="light"] .tooltip-share::after {
+  background: #1f2328;
+  color: #ffffff;
+}
+.tooltip-share:hover::after {
+  opacity: 1;
+  transform: translateX(-50%) scale(1);
+}
+
+/* Claim button pulse for top 3 */
+@keyframes claimPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(35, 134, 54, 0.4); }
+  50% { box-shadow: 0 0 0 4px rgba(35, 134, 54, 0); }
+}
+
+.claim-pulse {
+  animation: claimPulse 2s ease-in-out infinite;
+}
+
+/* Smooth number counter feel */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Light theme: GitHub SVG icon fill */
+html[data-theme="light"] .fill-gh-text {
+  fill: #1f2328;
 }
