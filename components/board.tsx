@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback, useRef } from "react";
 import { ContribGrid } from "./contrib-grid";
-import { DEMO_LISTINGS } from "@/lib/demo-listings";
 
 type Listing = {
   id: string;
@@ -43,12 +42,12 @@ type GHData = {
   url: string;
 };
 
-function TierHeader({ label, count, demo }: { label: string; count: number; demo: boolean }) {
+function TierHeader({ label, count }: { label: string; count: number }) {
   return (
     <div className="flex items-center gap-3 px-4 py-2.5 bg-gh-overlay/60 border-b border-gh-border">
       <span className="text-xs font-bold text-gh-text tracking-wide uppercase">{label}</span>
       <span className="flex-1 h-px bg-gh-border" />
-      <span className="text-xs text-gh-text-secondary tabular-nums font-medium">{count} {demo ? "examples" : "listed"}</span>
+      <span className="text-xs text-gh-text-secondary tabular-nums font-medium">{count} listed</span>
     </div>
   );
 }
@@ -58,7 +57,6 @@ export function Board() {
   const [meta, setMeta] = useState<Meta>({ totalStars: 0, totalListings: 0, totalBoosted: 0, totalViews: 0 });
   const [loading, setLoading] = useState(true);
   const [now, setNow] = useState(() => Date.now());
-  const [boardMode, setBoardMode] = useState<"live" | "demo">("live");
   const handledListingHashRef = useRef("");
   const linkedListingElementRef = useRef<HTMLElement | null>(null);
 
@@ -118,7 +116,6 @@ export function Board() {
     handledListingHashRef.current = hash;
     let frame = 0;
     const timeout = window.setTimeout(() => {
-      setBoardMode("live");
       frame = window.requestAnimationFrame(() => {
         const target = document.getElementById(`listing-${listingId}`);
         linkedListingElementRef.current?.classList.remove("listing-linked");
@@ -278,14 +275,11 @@ export function Board() {
   const outbidRankColor = outbidPredictedRank === 1 ? "text-gh-yellow" : outbidPredictedRank <= 3 ? "text-gh-orange" : "text-gh-green-bright";
   const outbidSameBidCount = outbidCents > 0 ? listings.filter((l) => l.boost === outbidCents).length : 0;
 
-  const isDemo = boardMode === "demo";
-  const displayedListings = isDemo ? DEMO_LISTINGS : listings;
-
   // Tier slices for leaderboard sections (top 3 are featured cards)
-  const tier4to10 = displayedListings.slice(3, 10);
-  const tier11to20 = displayedListings.slice(10, 20);
-  const tier21to50 = displayedListings.slice(20, 50);
-  const tierRest = displayedListings.slice(50);
+  const tier4to10 = listings.slice(3, 10);
+  const tier11to20 = listings.slice(10, 20);
+  const tier21to50 = listings.slice(20, 50);
+  const tierRest = listings.slice(50);
   const ITEMS_PER_PAGE = 50;
   const totalPages = Math.ceil(tierRest.length / ITEMS_PER_PAGE);
   const pagedRest = tierRest.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE);
@@ -296,25 +290,7 @@ export function Board() {
   };
 
   const openProfile = (listing: Listing) => {
-    if (isDemo) {
-      window.open(listing.url, "_blank", "noopener");
-      return;
-    }
     trackClick(listing.id, listing.url);
-  };
-
-  const startRealListing = () => {
-    setBoardMode("live");
-    setPage(1);
-    requestAnimationFrame(() => {
-      heroInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
-      heroInputRef.current?.focus({ preventScroll: true });
-    });
-  };
-
-  const changeBoardMode = (mode: "live" | "demo") => {
-    setBoardMode(mode);
-    setPage(1);
   };
 
   const ShareIcon = () => (
@@ -510,60 +486,29 @@ export function Board() {
         </div>
       )}
 
-      {/* Live/demo board selector */}
+      {/* Live leaderboard header */}
       {!loading && (
-        <div className={`relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 px-4 py-3.5 bg-gh-surface border rounded-md animate-fade-in-up delay-4 transition-colors duration-300 ${isDemo ? "border-gh-blue/35" : "border-gh-green-bright/35"}`}>
-          <span className={`absolute inset-y-3 left-0 w-0.5 rounded-r transition-colors duration-300 ${isDemo ? "bg-gh-blue" : "bg-gh-green-bright"}`} />
+        <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4 px-4 py-3.5 bg-gh-surface border border-gh-green-bright/35 rounded-md animate-fade-in-up delay-4">
+          <span className="absolute inset-y-3 left-0 w-0.5 rounded-r bg-gh-green-bright" />
           <div className="min-w-0 pl-1">
             <div className="flex items-center gap-2">
-              <span className={`w-2 h-2 rounded-full shrink-0 transition-colors duration-300 ${isDemo ? "bg-gh-blue" : "bg-gh-green-bright animate-pulse"}`} />
-              <h3 className="text-sm font-semibold text-gh-text">{isDemo ? "Demo preview" : "Live leaderboard"}</h3>
-              <span className={`hidden sm:inline-flex px-1.5 py-0.5 rounded border text-[10px] font-bold uppercase ${isDemo ? "text-gh-blue border-gh-blue/25 bg-gh-blue/10" : "text-gh-green-bright border-gh-green-bright/25 bg-gh-green/10"}`}>
-                {isDemo ? "Examples" : "Open"}
+              <span className="w-2 h-2 rounded-full shrink-0 bg-gh-green-bright animate-pulse" />
+              <h3 className="text-sm font-semibold text-gh-text">Live leaderboard</h3>
+              <span className="hidden sm:inline-flex px-1.5 py-0.5 rounded border text-[10px] font-bold uppercase text-gh-green-bright border-gh-green-bright/25 bg-gh-green/10">
+                Open
               </span>
             </div>
             <p className="text-xs text-gh-text-secondary mt-1 leading-relaxed">
-              {isDemo ? (
-                <>Think you have a better profile or repo? Use these examples as the benchmark and <strong className="text-gh-text font-semibold">claim a live spot.</strong></>
-              ) : (
-                <><strong className="text-gh-text font-semibold tabular-nums">{listings.length}</strong> real {listings.length === 1 ? "listing" : "listings"}. The next available spot starts at <strong className="text-gh-text font-semibold">{fmtDollars(minNewBid)}</strong>.</>
-              )}
+              <strong className="text-gh-text font-semibold tabular-nums">{listings.length}</strong> {listings.length === 1 ? "listing" : "listings"}. The next available spot starts at <strong className="text-gh-text font-semibold">{fmtDollars(minNewBid)}</strong>.
             </p>
-          </div>
-          <div className="relative grid grid-cols-2 self-stretch sm:self-auto w-full sm:w-56 h-10 p-1 bg-gh-canvas border border-gh-border rounded-md shrink-0" role="tablist" aria-label="Leaderboard view">
-            <span
-              aria-hidden="true"
-              className={`absolute top-1 bottom-1 left-1 w-[calc(50%_-_4px)] rounded border shadow-sm transition-all duration-300 ease-out ${isDemo ? "translate-x-full bg-gh-blue/10 border-gh-blue/30" : "translate-x-0 bg-gh-green/10 border-gh-green-bright/30"}`}
-            />
-            <button
-              type="button"
-              role="tab"
-              aria-selected={!isDemo}
-              onClick={() => changeBoardMode("live")}
-              className={`relative z-10 flex items-center justify-center gap-1.5 rounded text-xs font-semibold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-green-bright/60 ${!isDemo ? "text-gh-green-bright" : "text-gh-text-secondary hover:text-gh-text"}`}
-            >
-              <span className={`w-1.5 h-1.5 rounded-full ${!isDemo ? "bg-gh-green-bright animate-pulse" : "bg-gh-text-muted"}`} />
-              Live
-              <span className={`min-w-5 px-1 py-0.5 rounded text-[10px] tabular-nums ${!isDemo ? "bg-gh-green/15 text-gh-green-bright" : "bg-gh-overlay text-gh-text-secondary"}`}>{listings.length}</span>
-            </button>
-            <button
-              type="button"
-              role="tab"
-              aria-selected={isDemo}
-              onClick={() => changeBoardMode("demo")}
-              className={`relative z-10 flex items-center justify-center gap-1.5 rounded text-xs font-semibold transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gh-blue/60 ${isDemo ? "text-gh-blue" : "text-gh-text-secondary hover:text-gh-text"}`}
-            >
-              <span className={`w-1.5 h-1.5 rounded-full ring-2 ring-offset-1 ring-offset-gh-canvas ${isDemo ? "bg-gh-blue ring-gh-blue/35" : "bg-gh-text-muted ring-gh-text-muted/25"}`} />
-              Demo preview
-            </button>
           </div>
         </div>
       )}
 
       {/* Top 3 Featured Cards */}
-      {!loading && displayedListings.length > 0 && (
+      {!loading && listings.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          {displayedListings.slice(0, 3).map((l, i) => {
+          {listings.slice(0, 3).map((l, i) => {
             const rank = i + 1;
             const borderColor = rank === 1 ? "border-gh-yellow" : rank === 2 ? "border-gh-text-secondary" : "border-gh-orange";
             const cardRankColor = rank === 1 ? "text-gh-yellow" : rank === 2 ? "text-gh-text-secondary" : "text-gh-orange";
@@ -571,7 +516,7 @@ export function Board() {
             return (
               <div
                 key={l.id}
-                id={!isDemo ? `listing-${l.id}` : undefined}
+                id={`listing-${l.id}`}
                 className={`listing-target scroll-mt-20 relative bg-gh-surface border-2 ${borderColor} rounded-lg overflow-hidden card-hover`}
               >
                 {rank === 1 && (
@@ -602,7 +547,7 @@ export function Board() {
                         )}
                       </span>
                     </div>
-                    <span className="text-[11px] text-gh-text-muted tabular-nums">{isDemo ? "Example" : `${l.clicks} clicks`}</span>
+                    <span className="text-[11px] text-gh-text-muted tabular-nums">{`${l.clicks} clicks`}</span>
                   </div>
 
                   {/* Avatar + name */}
@@ -681,19 +626,17 @@ export function Board() {
                       {fmtDollars(l.boost)}
                     </span>
                     <div className="flex items-center gap-2">
-                      {!isDemo && (
-                        <button
+                      <button
                           onClick={() => window.open(`/share?id=${l.id}`, "_blank")}
                           className="tooltip-share px-2 py-1.5 text-gh-text-muted hover:text-gh-blue border border-gh-border rounded-md transition-all duration-200 hover:border-gh-blue/40"
                         >
                           <ShareIcon />
                         </button>
-                      )}
                       <button
-                        onClick={() => isDemo ? startRealListing() : openOutbid(rank, l)}
+                        onClick={() => openOutbid(rank, l)}
                         className="px-3 py-1.5 text-xs font-semibold rounded-md bg-gh-green/90 border border-gh-green-bright/30 text-white hover:bg-gh-green-bright transition-all duration-200 hover:scale-[1.03] active:scale-[0.97] claim-pulse tabular-nums"
                       >
-                        {isDemo ? "Get listed" : `Claim ${fmtDollars(nextAvailablePrice(l.boost + 100))}`}
+                        {`Claim ${fmtDollars(nextAvailablePrice(l.boost + 100))}`}
                       </button>
                     </div>
                   </div>
@@ -707,11 +650,11 @@ export function Board() {
       {/* Leaderboard */}
       {(() => {
         const renderRow = (l: Listing, rank: number) => {
-          const claimLabel = isDemo ? "Get listed" : `Claim ${fmtDollars(nextAvailablePrice(l.boost + 100))}`;
+          const claimLabel = `Claim ${fmtDollars(nextAvailablePrice(l.boost + 100))}`;
           return (
             <div
               key={l.id}
-              id={!isDemo ? `listing-${l.id}` : undefined}
+              id={`listing-${l.id}`}
               className="listing-target scroll-mt-20 group border-b border-gh-border transition-all duration-200 hover:bg-gh-overlay/40"
             >
               {/* Desktop row */}
@@ -769,7 +712,7 @@ export function Board() {
                 </div>
                 <div className="shrink-0 ml-auto pl-2 relative">
                   <div className="flex items-center justify-end gap-3 md:group-hover:opacity-0 transition-opacity duration-200">
-                    <span className="text-[11px] text-gh-text-muted tabular-nums whitespace-nowrap">{isDemo ? "Example bid" : `${l.clicks} clicks`}</span>
+                    <span className="text-[11px] text-gh-text-muted tabular-nums whitespace-nowrap">{`${l.clicks} clicks`}</span>
                     <span className={`font-mono font-bold text-sm tabular-nums whitespace-nowrap text-right w-20 ${
                       rank <= 3 ? "text-gh-yellow" : "text-gh-green-bright"
                     }`}>
@@ -777,12 +720,10 @@ export function Board() {
                     </span>
                   </div>
                   <div className="hidden md:flex items-center gap-2 absolute inset-0 justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                    {!isDemo && (
-                      <button onClick={() => window.open(`/share?id=${l.id}`, "_blank")} className="tooltip-share px-1.5 py-1 text-gh-text-muted hover:text-gh-blue transition-all duration-200">
+                    <button onClick={() => window.open(`/share?id=${l.id}`, "_blank")} className="tooltip-share px-1.5 py-1 text-gh-text-muted hover:text-gh-blue transition-all duration-200">
                         <ShareIcon />
                       </button>
-                    )}
-                    <button onClick={() => isDemo ? startRealListing() : openOutbid(rank, l)} className="px-3 py-1.5 text-xs font-semibold rounded-md border transition-all duration-200 bg-gh-green/90 border-gh-green-bright/30 text-white hover:bg-gh-green-bright hover:scale-[1.03] active:scale-[0.97] tabular-nums whitespace-nowrap">
+                    <button onClick={() => openOutbid(rank, l)} className="px-3 py-1.5 text-xs font-semibold rounded-md border transition-all duration-200 bg-gh-green/90 border-gh-green-bright/30 text-white hover:bg-gh-green-bright hover:scale-[1.03] active:scale-[0.97] tabular-nums whitespace-nowrap">
                       {claimLabel}
                     </button>
                   </div>
@@ -812,8 +753,8 @@ export function Board() {
                   }`}>
                     {fmtDollars(l.boost)}
                   </span>
-                  <button onClick={() => isDemo ? startRealListing() : openOutbid(rank, l)} className="px-2.5 py-1.5 text-[11px] font-semibold rounded-md bg-gh-green/90 border border-gh-green-bright/30 text-white tabular-nums">
-                    {isDemo ? "List" : "Claim"}
+                  <button onClick={() => openOutbid(rank, l)} className="px-2.5 py-1.5 text-[11px] font-semibold rounded-md bg-gh-green/90 border border-gh-green-bright/30 text-white tabular-nums">
+                    Claim
                   </button>
                 </div>
               </div>
@@ -824,9 +765,9 @@ export function Board() {
         return (
           <div id="leaderboard" className="bg-gh-surface border border-gh-border rounded-md overflow-hidden">
             <div className="flex items-center justify-between px-4 py-3 border-b border-gh-border bg-gh-overlay/50">
-              <h3 className="text-sm font-semibold text-gh-text">{isDemo ? "Example rankings" : "Live rankings"}</h3>
+              <h3 className="text-sm font-semibold text-gh-text">Live rankings</h3>
               <span className="text-xs text-gh-text-secondary tabular-nums">
-                {isDemo ? `${displayedListings.length} examples` : displayedListings.length === 0 ? "No listings yet" : `${displayedListings.length} listed`}
+                {listings.length === 0 ? "No listings yet" : `${listings.length} listed`}
               </span>
             </div>
 
@@ -836,27 +777,23 @@ export function Board() {
                   <div key={i} className="h-14 bg-gh-overlay/30 animate-pulse border-b border-gh-border last:border-b-0" />
                 ))}
               </div>
-            ) : displayedListings.length === 0 ? (
+            ) : listings.length === 0 ? (
               <div className="text-center py-12 px-4">
                 <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-gh-green/10 border border-gh-green-bright/25 text-gh-green-bright font-mono font-bold text-sm mb-3">#1</div>
                 <p className="text-gh-text font-semibold text-sm">The live board is wide open.</p>
                 <p className="text-gh-text-secondary text-sm mt-1.5 max-w-sm mx-auto leading-relaxed">
-                  Think your profile or repo can beat the examples? Take the first real spot for <strong className="text-gh-text font-semibold">$1</strong>.
+                  Get on the board for just <strong className="text-gh-text font-semibold">$1</strong>.
                 </p>
                 <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-center gap-2 mt-4 max-w-xs mx-auto">
                   <button
                     type="button"
-                    onClick={startRealListing}
+                    onClick={() => {
+                      heroInputRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+                      heroInputRef.current?.focus({ preventScroll: true });
+                    }}
                     className="px-4 py-2 rounded-md bg-gh-green text-white text-xs font-semibold border border-gh-green-bright/25 hover:bg-gh-green-bright transition-colors"
                   >
-                    Claim live #1
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => changeBoardMode("demo")}
-                    className="px-4 py-2 rounded-md bg-gh-overlay text-gh-text-secondary text-xs font-semibold border border-gh-border hover:text-gh-text hover:border-gh-blue/40 transition-colors"
-                  >
-                    See demo rankings
+                    Claim #1
                   </button>
                 </div>
               </div>
@@ -865,7 +802,7 @@ export function Board() {
                 {/* Top 10: ranks 4-10 */}
                 {tier4to10.length > 0 && (
                   <>
-                    <TierHeader label="Top 10" count={tier4to10.length} demo={isDemo} />
+                    <TierHeader label="Top 10" count={tier4to10.length} />
                     {tier4to10.map((l, i) => renderRow(l, i + 4))}
                   </>
                 )}
@@ -873,7 +810,7 @@ export function Board() {
                 {/* Top 20: ranks 11-20 */}
                 {tier11to20.length > 0 && (
                   <>
-                    <TierHeader label="Top 20" count={tier11to20.length} demo={isDemo} />
+                    <TierHeader label="Top 20" count={tier11to20.length} />
                     {tier11to20.map((l, i) => renderRow(l, i + 11))}
                   </>
                 )}
@@ -881,7 +818,7 @@ export function Board() {
                 {/* Top 50: ranks 21-50 */}
                 {tier21to50.length > 0 && (
                   <>
-                    <TierHeader label="Top 50" count={tier21to50.length} demo={isDemo} />
+                    <TierHeader label="Top 50" count={tier21to50.length} />
                     {tier21to50.map((l, i) => renderRow(l, i + 21))}
                   </>
                 )}
@@ -889,7 +826,7 @@ export function Board() {
                 {/* 51+: paginated */}
                 {pagedRest.length > 0 && (
                   <>
-                    <TierHeader label={`#${51 + (page - 1) * ITEMS_PER_PAGE}+`} count={pagedRest.length} demo={isDemo} />
+                    <TierHeader label={`#${51 + (page - 1) * ITEMS_PER_PAGE}+`} count={pagedRest.length} />
                     {pagedRest.map((l, i) => renderRow(l, 51 + (page - 1) * ITEMS_PER_PAGE + i))}
                   </>
                 )}
